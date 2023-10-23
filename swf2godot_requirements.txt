@@ -1,0 +1,4 @@
+lxml==4.9.1
+svgpathtools==1.5.1
+numpy==1.23.5
+rich==12.6.0

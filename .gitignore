@@ -1,0 +1,7 @@
+*
+!.gitignore
+!*.sh
+!*.md
+!*.py
+!*.txt
+!*.js
