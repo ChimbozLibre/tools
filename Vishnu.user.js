@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vishnu
 // @namespace    https://chimboz.fr/tchat
-// @version      0.9.11
+// @version      0.9.12
 // @description  Full interface redesign and various utils
 // @author       Tigriz
 // @license      CeCILL v2.1
