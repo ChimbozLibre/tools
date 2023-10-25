@@ -176,6 +176,7 @@ const html = (html) => Object.assign(document.createElement('template'), { inner
       GATE_TO_PRO: { name: 'gate_to_pro', hasItems: true },
       GATE_TO_SWAMPS: { name: 'gate_to_swamps', hasItems: true },
       GATE_TO_WEDDING: { name: 'gate_to_wedding', hasItems: true },
+      KOPAKABANA: { name: 'kopakabana' },
       NOOBZONE: { name: 'noobzone' },
       PATOJDUR: { name: 'patojdur' },
       RESIDENTIAL_DISTRICT: { name: 'residential_district', hasTree: true },
