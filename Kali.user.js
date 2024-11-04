@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kali
 // @namespace    https://chapatiz.fr/tchat
-// @version      0.0.3
+// @version      0.0.4
 // @description  Scripting tool for Chapatiz
 // @author       Tigriz, rogacienne123
 // @match        https://www.chapatiz.com/tchat/
@@ -167,7 +167,7 @@ const html = (html) => Object.assign(document.createElement('template'), { inner
         'message',
         (event) => {
           const data = Chapatiz.parse(event.data);
-          const res = data.data.split('i');
+          const res = data.action.split('i');
           if (data.action === 'MAZO_SHOT_RESULT' && +res[2] <= rank) {
             console.log(`✨ %cYou reached target rank ${rank} at rank ${res[2]}!`, 'color:orange');
             Chapatiz.UI.messages.add(`✨ Auto-MaZo: Tu as atteint le rang ${rank} (rang ${res[2]}) !`);
@@ -262,18 +262,20 @@ const html = (html) => Object.assign(document.createElement('template'), { inner
         Chapatiz.askQuestion(userAnswer);
       }
     });
-    Chapatiz.UI.buttons.add('Speedhack', '⚡', () => {
-      Chapatiz.settings.speedhack.time = window.performance.now();
-      Chapatiz.settings.speedhack.current = Chapatiz.settings.speedhack.current !== 1 ? 1 : Chapatiz.settings.speedhack.preferred;
-    });
     Chapatiz.UI.teleport = { el: html('<div class="kali tab-contents teleport"></div>') };
     document.querySelector('#chatbox').append(Chapatiz.UI.teleport.el);
+
     for (const room of Object.values(Chapatiz.ROOMS).sort((a, b) => a.localeCompare(b))) {
       const teleport = html(`<strong><a class="text" href="#">${room}</a></strong>`);
       teleport.onclick = () => Chapatiz.teleport(room);
       if (room.parameter) teleport.onclick = () => Chapatiz.teleport(room);
       Chapatiz.UI.teleport.el.append(teleport);
     }
+
+    Chapatiz.UI.buttons.add('Speedhack', '⚡', () => {
+      Chapatiz.settings.speedhack.time = window.performance.now();
+      Chapatiz.settings.speedhack.current = Chapatiz.settings.speedhack.current !== 1 ? 1 : Chapatiz.settings.speedhack.preferred;
+    });
 
     // Style
     document.body.append(
@@ -335,13 +337,14 @@ const html = (html) => Object.assign(document.createElement('template'), { inner
     const nativeSetTimeout = window.setTimeout;
     const nativeSetInterval = window.setInterval;
     const nativePerformanceNow = window.performance?.now?.bind(window.performance);
-    window.setTimeout = function (callback, delay) {
-      nativeSetTimeout(callback, delay * Chapatiz.settings.speedhack.current);
-    };
-    window.setInterval = function (callback, interval) {
-      nativeSetInterval(callback, interval * Chapatiz.settings.speedhack.current);
-    };
+    const nativeObjectCreate = Object.create;
+    window.setTimeout = (callback, delay) => nativeSetTimeout(callback, delay * Chapatiz.settings.speedhack.current);
+    window.setInterval = (callback, interval) => nativeSetInterval(callback, interval * Chapatiz.settings.speedhack.current);
     window.performance.now = () => nativePerformanceNow() * Chapatiz.settings.speedhack.current + Chapatiz.settings.speedhack.time;
+    Object.create = (...args) => {
+      // Try to hook something?
+      return nativeObjectCreate(...args);
+    };
 
     setTimeout(() => {
       Chapatiz.UI.messages.add(`Kali chargé et prêt à être utilisé !`);
