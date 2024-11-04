@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kali
 // @namespace    https://chapatiz.fr/tchat
-// @version      0.0.2
+// @version      0.0.3
 // @description  Scripting tool for Chapatiz
 // @author       Tigriz, rogacienne123
 // @match        https://www.chapatiz.com/tchat/
@@ -24,7 +24,11 @@ const html = (html) => Object.assign(document.createElement('template'), { inner
         in: false,
         out: true,
       },
-      speed: 1,
+      speedhack: {
+        current: 1,
+        preferred: 10,
+        time: 0,
+      },
     },
     ROOMS: {
       'central.animation': 'central.animation',
@@ -198,7 +202,7 @@ const html = (html) => Object.assign(document.createElement('template'), { inner
             html(
               `<p><span class="time">[${new Date().toLocaleTimeString(
                 'fr'
-              )}]</span><span class="text system-message"><img class="kali-icon" src="https://01static.chapatiz.com/fr/rarity/gem_7.png" alt="Kali icon" /> ${content}</span></p>`
+              )}]</span><span class="text system-message"><img class="kali icon" src="https://01static.chapatiz.com/fr/rarity/gem_7.png" alt="Kali icon" /> ${content}</span></p>`
             )
           ),
       },
@@ -238,7 +242,7 @@ const html = (html) => Object.assign(document.createElement('template'), { inner
       const targetUsername = prompt("Entrez le nom d'utilisateur cible pour le test d'amour :");
       if (targetUsername) Chapatiz.loveTest(targetUsername);
     });
-    Chapatiz.UI.buttons.add('Rechercher et aller à la maison (Exemple)', '🏡', () => {
+    Chapatiz.UI.buttons.add('Rechercher et aller à la maison', '🏡', () => {
       const memberId = prompt("Entrez l'ID du membre :");
       if (memberId) {
         Chapatiz.searchHouse(memberId);
@@ -251,19 +255,19 @@ const html = (html) => Object.assign(document.createElement('template'), { inner
         }, 1000);
       }
     });
-
     Chapatiz.UI.buttons.add('Aller au cachot', '👮', () => Chapatiz.teleport(Chapatiz.ROOMS['classics.kchod']));
-
     Chapatiz.UI.buttons.add('Poser une question', '❓', () => {
       const userAnswer = prompt('Posez votre question ici :');
       if (userAnswer) {
         Chapatiz.askQuestion(userAnswer);
       }
     });
-
+    Chapatiz.UI.buttons.add('Speedhack', '⚡', () => {
+      Chapatiz.settings.speedhack.time = window.performance.now();
+      Chapatiz.settings.speedhack.current = Chapatiz.settings.speedhack.current !== 1 ? 1 : Chapatiz.settings.speedhack.preferred;
+    });
     Chapatiz.UI.teleport = { el: html('<div class="kali tab-contents teleport"></div>') };
     document.querySelector('#chatbox').append(Chapatiz.UI.teleport.el);
-
     for (const room of Object.values(Chapatiz.ROOMS).sort((a, b) => a.localeCompare(b))) {
       const teleport = html(`<strong><a class="text" href="#">${room}</a></strong>`);
       teleport.onclick = () => Chapatiz.teleport(room);
@@ -271,75 +275,73 @@ const html = (html) => Object.assign(document.createElement('template'), { inner
       Chapatiz.UI.teleport.el.append(teleport);
     }
 
-    Chapatiz.UI.buttons.add('Speedhack', '⚡', () => (Chapatiz.settings.speed = Chapatiz.settings.speed > 1 ? 1 : 10));
-
     // Style
     document.body.append(
       html(`<style>
-        .kali-icon {
-  width: 16px;
-  vertical-align: top;
-}
-
-.kali.tab-contents {
-  max-height: 25%;
-  margin-top: 8px;
-  flex: unset !important;
-  display: flex;
-  border-top: 0;
-  font-size: 14px;
-  height: 100%;
-  box-sizing: border-box;
-  padding: 16px;
-  flex-direction: column;
-  resize: vertical;
-}
-
-.kali.teleport a {
-  color: #00609d;
-  text-decoration: unset;
-}
-
-.kali.button {
-  background-image: url(https://01static.chapatiz.com/fr/kali2/buttons/settings_button.png);
-  filter: hue-rotate(190deg);
-  text-indent: 0 !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  i {
-    background: linear-gradient(to bottom, #e27536, #f3b439);
-    font-style: unset;
-    font-size: 24px;
-    margin-top: -4px;
-    padding: 0 4px;
-    border-radius: 8px;
+.kali {
+  &.icon {
+    width: 16px;
+    vertical-align: top;
   }
-  &:hover i {
-    background: linear-gradient(to bottom, #ffa954, #fffe59);
+
+  &.tab-contents {
+    max-height: 25%;
+    margin-top: 8px;
+    flex: unset !important;
+    display: flex;
+    border-top: 0;
+    font-size: 14px;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 16px;
+    flex-direction: column;
+    resize: vertical;
   }
-  &.active {
-    background-position: 0 -48px !important;
+
+  &.teleport a {
+    color: #00609d;
+    text-decoration: unset;
+  }
+
+  &.button {
+    background-image: url(https://01static.chapatiz.com/fr/kali2/buttons/settings_button.png);
+    filter: hue-rotate(190deg);
+    text-indent: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     i {
+      background: linear-gradient(to bottom, #e27536, #f3b439);
+      font-style: unset;
+      font-size: 24px;
+      margin-top: -4px;
+      padding: 0 4px;
+      border-radius: 8px;
+    }
+    &:hover i {
       background: linear-gradient(to bottom, #ffa954, #fffe59);
+    }
+    &.active {
+      background-position: 0 -48px !important;
+      i {
+        background: linear-gradient(to bottom, #ffa954, #fffe59);
+      }
     }
   }
 }
 </style>`)
     );
 
-    const originalSetTimeout = window.setTimeout;
-    const originalSetInterval = window.setInterval;
-    const originalPerformanceNow = window.performance?.now?.bind(window.performance);
+    const nativeSetTimeout = window.setTimeout;
+    const nativeSetInterval = window.setInterval;
+    const nativePerformanceNow = window.performance?.now?.bind(window.performance);
     window.setTimeout = function (callback, delay) {
-      originalSetTimeout(callback, delay * Chapatiz.settings.speed);
+      nativeSetTimeout(callback, delay * Chapatiz.settings.speedhack.current);
     };
     window.setInterval = function (callback, interval) {
-      originalSetInterval(callback, interval * Chapatiz.settings.speed);
+      nativeSetInterval(callback, interval * Chapatiz.settings.speedhack.current);
     };
-    window.performance.now = function () {
-      return originalPerformanceNow() * Chapatiz.settings.speed;
-    };
+    window.performance.now = () => nativePerformanceNow() * Chapatiz.settings.speedhack.current + Chapatiz.settings.speedhack.time;
 
     setTimeout(() => {
       Chapatiz.UI.messages.add(`Kali chargé et prêt à être utilisé !`);
