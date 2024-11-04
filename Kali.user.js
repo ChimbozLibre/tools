@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         Kali
 // @namespace    https://chapatiz.fr/tchat
-// @version      0.0.1
+// @version      0.0.2
 // @description  Scripting tool for Chapatiz
-// @author       Tigriz
+// @author       Tigriz, rogacienne123
 // @match        https://www.chapatiz.com/tchat/
 // @match        https://*.chapatiz.com/tchat*
-// @icon         https://i.aveshack.com/253fe437d2464622.png
+// @icon         https://01static.chapatiz.com/fr/rarity/gem_7.png
 // @run-at       document-start
 // @grant        none
 // ==/UserScript==
@@ -24,6 +24,7 @@ const html = (html) => Object.assign(document.createElement('template'), { inner
         in: false,
         out: true,
       },
+      speed: 1,
     },
     ROOMS: {
       'central.animation': 'central.animation',
@@ -147,6 +148,11 @@ const html = (html) => Object.assign(document.createElement('template'), { inner
       Chapatiz.ws = ws;
     },
     teleport: (room) => Chapatiz.ws.send(`wy13:ClientMessagey11:CHANGE_ROOM:2y${room.length}:${room}n`),
+    goToRandomHome: () => Chapatiz.ws.send('wy13:ClientMessagey17:GO_TO_RANDOM_HOME:0'),
+    loveTest: (targetUsername) => Chapatiz.ws.send(`wy13:ClientMessagey9:LOVE_TEST:1y${targetUsername.length}:${targetUsername}`),
+    searchHouse: (memberId) => Chapatiz.ws.send(`wy13:ClientMessagey21:SEARCH_HOUSE:1oy2:idi${memberId}y$`),
+    goToHouse: (houseId) => Chapatiz.ws.send(`wy13:ClientMessagey10:GO_TO_HOME:1i${houseId}`),
+    askQuestion: (question) => Chapatiz.ws.send(`wy13:ClientMessagey12:LAUNCH_MAGIC:1y${question.length}:${question}`),
     mazo: (rank = 1, delay = 5050) => {
       Chapatiz.tasks.mazo.queue.push(
         setInterval(() => {
@@ -192,7 +198,7 @@ const html = (html) => Object.assign(document.createElement('template'), { inner
             html(
               `<p><span class="time">[${new Date().toLocaleTimeString(
                 'fr'
-              )}]</span><span class="text system-message"><img class="kali-icon" src="https://i.aveshack.com/253fe437d2464622.png" alt="Kali icon" /> ${content}</span></p>`
+              )}]</span><span class="text system-message"><img class="kali-icon" src="https://01static.chapatiz.com/fr/rarity/gem_7.png" alt="Kali icon" /> ${content}</span></p>`
             )
           ),
       },
@@ -227,8 +233,36 @@ const html = (html) => Object.assign(document.createElement('template'), { inner
     Chapatiz.UI.messages.el = document.querySelector('#tab-0 div');
     Chapatiz.UI.buttons.el = document.querySelector('#room .buttons');
     Chapatiz.UI.buttons.add('Auto-mazo to #1', '🎰', () => (Chapatiz.tasks.mazo.queue.length ? Chapatiz.tasks.clearAll('mazo') : Chapatiz.mazo()));
+    Chapatiz.UI.buttons.add('Aller à une maison aléatoire', '♾️', () => Chapatiz.goToRandomHome());
+    Chapatiz.UI.buttons.add("Test d'amour", '💖', () => {
+      const targetUsername = prompt("Entrez le nom d'utilisateur cible pour le test d'amour :");
+      if (targetUsername) Chapatiz.loveTest(targetUsername);
+    });
+    Chapatiz.UI.buttons.add('Rechercher et aller à la maison (Exemple)', '🏡', () => {
+      const memberId = prompt("Entrez l'ID du membre :");
+      if (memberId) {
+        Chapatiz.searchHouse(memberId);
+
+        setTimeout(() => {
+          const houseId = prompt("Entrez l'ID de la maison à laquelle vous souhaitez aller :");
+          if (houseId) {
+            Chapatiz.goToHouse(houseId);
+          }
+        }, 1000);
+      }
+    });
+
+    Chapatiz.UI.buttons.add('Aller au cachot', '👮', () => Chapatiz.teleport(Chapatiz.ROOMS['classics.kchod']));
+
+    Chapatiz.UI.buttons.add('Poser une question', '❓', () => {
+      const userAnswer = prompt('Posez votre question ici :');
+      if (userAnswer) {
+        Chapatiz.askQuestion(userAnswer);
+      }
+    });
+
     Chapatiz.UI.teleport = { el: html('<div class="kali tab-contents teleport"></div>') };
-    document.querySelector('#chatbox').append(Chapatiz.UI.teleport.el)
+    document.querySelector('#chatbox').append(Chapatiz.UI.teleport.el);
 
     for (const room of Object.values(Chapatiz.ROOMS).sort((a, b) => a.localeCompare(b))) {
       const teleport = html(`<strong><a class="text" href="#">${room}</a></strong>`);
@@ -237,10 +271,12 @@ const html = (html) => Object.assign(document.createElement('template'), { inner
       Chapatiz.UI.teleport.el.append(teleport);
     }
 
+    Chapatiz.UI.buttons.add('Speedhack', '⚡', () => (Chapatiz.settings.speed = Chapatiz.settings.speed > 1 ? 1 : 10));
+
     // Style
     document.body.append(
       html(`<style>
-.kali-icon {
+        .kali-icon {
   width: 16px;
   vertical-align: top;
 }
@@ -265,29 +301,49 @@ const html = (html) => Object.assign(document.createElement('template'), { inner
 }
 
 .kali.button {
-  background-image: url(https://i.aveshack.com/4316a5123e56b031.png);
+  background-image: url(https://01static.chapatiz.com/fr/kali2/buttons/settings_button.png);
   filter: hue-rotate(190deg);
   text-indent: 0 !important;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.kali.button.active {
+  i {
+    background: linear-gradient(to bottom, #e27536, #f3b439);
+    font-style: unset;
+    font-size: 24px;
+    margin-top: -4px;
+    padding: 0 4px;
+    border-radius: 8px;
+  }
+  &:hover i {
+    background: linear-gradient(to bottom, #ffa954, #fffe59);
+  }
+  &.active {
     background-position: 0 -48px !important;
-}
-
-.kali.button i {
-  font-style: unset;
-  font-size: 24px;
-  filter: grayscale(1);
+    i {
+      background: linear-gradient(to bottom, #ffa954, #fffe59);
+    }
+  }
 }
 </style>`)
     );
 
+    const originalSetTimeout = window.setTimeout;
+    const originalSetInterval = window.setInterval;
+    const originalPerformanceNow = window.performance?.now?.bind(window.performance);
+    window.setTimeout = function (callback, delay) {
+      originalSetTimeout(callback, delay * Chapatiz.settings.speed);
+    };
+    window.setInterval = function (callback, interval) {
+      originalSetInterval(callback, interval * Chapatiz.settings.speed);
+    };
+    window.performance.now = function () {
+      return originalPerformanceNow() * Chapatiz.settings.speed;
+    };
+
     setTimeout(() => {
       Chapatiz.UI.messages.add(`Kali chargé et prêt à être utilisé !`);
-    }, 1000)
+    }, 1000);
   });
 
   window.Chapatiz = Chapatiz;
